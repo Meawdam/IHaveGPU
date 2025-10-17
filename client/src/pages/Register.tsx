@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { useSession } from "../components/utility/useSession";
 
 type RegisterForm = {
   email: string;
@@ -21,6 +22,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  useSession();
+
   const onSubmit = async (data: RegisterForm) => {
     if (data.password !== data.confirmPassword) {
       Swal.fire("Error", "Passwords do not match!", "error");
@@ -37,10 +40,21 @@ const Register = () => {
         { withCredentials: true }
       );
 
-      Swal.fire("Sucess", res.data.message, "success");
-      navigate("/login");
+      Swal.fire({
+        icon: "success",
+        title: res.data.message,
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        navigate("/login");
+      });
     } catch (error: any) {
-      Swal.fire("Error", error.response.message, "error");
+      Swal.fire({
+        icon: "error",
+        title: error.response?.data?.message,
+        showConfirmButton: false,
+        timer: 1500,
+      });
     }
   };
 

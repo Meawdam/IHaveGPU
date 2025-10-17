@@ -35,6 +35,14 @@ con.connect((err) => {
     }
 });
 
+app.get("/user", (req, res) => {
+    if(req.session.user){
+        res.status(200).json({loggedIn: true, user: req.session.user, message: "User is logged in"});
+    } else{
+        res.status(401).json({loggedIn: false});
+    }
+});
+
 
 app.post("/register", async (req, res) => {
     const {username, email, password} = req.body;
@@ -65,6 +73,8 @@ app.post("/login", async (req, res) => {
         req.session.user = {
             id: user.id,
             username: user.username,
+            email: user.password,
+            role: user.role
         }
 
         res.status(200).json({message: "Login successful", user: req.session.user});
@@ -78,7 +88,7 @@ app.post("/logout", (req, res) => {
     req.session.destroy((error) => {
         if(error) return res.status(500).json({message: "Logout Failed"});
         res.clearCookie("connect.sid");
-        res.status(200).json({message: "Logout successful"});
+        res.status(200).json({message: "Logout successful", loggedIn: false});
     });
 });
 
@@ -94,5 +104,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(process.env.SERVER_PORT, () => {
-    console.log("Server is running");
+    console.log("Server is running...");
 });

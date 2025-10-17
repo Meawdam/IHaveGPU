@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { useSession } from "../components/utility/useSession";
 
 type LoginForm = {
   email: string;
@@ -16,6 +17,8 @@ const Login = () => {
     formState: { errors },
   } = useForm<LoginForm>();
   const navigate = useNavigate();
+
+  useSession();
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data: LoginForm) => {
@@ -29,10 +32,20 @@ const Login = () => {
         { withCredentials: true }
       );
 
-      Swal.fire("Success", res.data.message, "success");
-      navigate("/"); // เปลี่ยนหน้าไปที่ home หรือ dashboard
+      Swal.fire({
+        icon: "success",
+        title: res.data.message,
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => navigate("/home"));
+      
     } catch (error: any) {
-      Swal.fire("Error", error.response?.data?.message || "Login failed", "error");
+      Swal.fire({
+        icon: "error",
+        title: error.response?.data?.message,
+        showConfirmButton: false,
+        timer: 1500,
+      })
     }
   };
 
@@ -97,7 +110,6 @@ const Login = () => {
                   />
                 </svg>
               ) : (
-                // ไอคอนโชว์รหัส
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"

@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
+import { useSession } from "../components/utility/useSession";
 
 const Index = () => {
-  
+
+  useSession();
   return (
     <div className="w-screen h-screen flex flex-col items-center justify-center text-center bg-blue-100 gap-4">
       <h1 className="text-5xl font-bold text-blue-800 animate-bounce">
