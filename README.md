@@ -37,6 +37,10 @@ const con = mysql.createConnection({
     password: "",
     database: DATABASENAME 
 });
+
+app.listen(3000, () => {
+    console.log("Server is running...");
+});
 ```
 
 # 2 Run
