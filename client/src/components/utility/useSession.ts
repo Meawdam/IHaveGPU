@@ -1,11 +1,10 @@
-// useSession.ts
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
 
 export const useSession = () => {
-  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -15,27 +14,22 @@ export const useSession = () => {
         });
 
         if (res.status === 200 && res.data.loggedIn) {
-          Swal.fire({
-            icon: "info",
-            title: "You're already logged in",
-            showConfirmButton: false,
-            timer: 1500,
-          }).then(() => {
-            navigate("/home");
-          });
+          setUser(res.data.user);
+        } else {
+          setUser(null);
         }
-      } catch (error: any) {
-        if (error.response?.status !== 401) {
-          Swal.fire({
-            icon: "error",
-            title: error.response?.data?.message || "Something went wrong",
-            showConfirmButton: false,
-            timer: 1500,
-          });
+      } catch (err: any) {
+        setUser(null);
+        if (err.response?.status !== 401) {
+          setError(err.response?.data?.message || "Something went wrong");
         }
+      } finally {
+        setLoading(false);
       }
     };
 
     checkSession();
-  }, [navigate]);
+  }, []);
+
+  return { user, loading, error };
 };

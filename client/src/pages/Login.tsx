@@ -1,6 +1,7 @@
+// src/pages/Login.tsx
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useSession } from "../components/utility/useSession";
@@ -17,35 +18,51 @@ const Login = () => {
     formState: { errors },
   } = useForm<LoginForm>();
   const navigate = useNavigate();
+  const { user, loading } = useSession();
 
-  useSession();
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (!loading && user) {
+      Swal.fire({
+        icon: "info",
+        title: "You're already logged in",
+        showConfirmButton: false,
+        timer: 1200,
+      }).then(() => {
+        if (user.role === "admin") navigate("/admin/dashboard");
+        else navigate("/home");
+      });
+    }
+  }, [user, loading, navigate]);
+
 
   const onSubmit = async (data: LoginForm) => {
     try {
       const res = await axios.post(
         "http://localhost:3000/login",
-        {
-          email: data.email,
-          password: data.password,
-        },
+        data,
         { withCredentials: true }
       );
 
+      const { user, message } = res.data;
+
       Swal.fire({
         icon: "success",
-        title: res.data.message,
+        title: message,   
         showConfirmButton: false,
-        timer: 1500,
-      }).then(() => navigate("/home"));
-      
+        timer: 1200,
+      }).then(() => {
+        if (user.role === "admin") navigate("/admin");
+        else navigate("/home");
+      });
     } catch (error: any) {
       Swal.fire({
         icon: "error",
         title: error.response?.data?.message,
         showConfirmButton: false,
         timer: 1500,
-      })
+      });
     }
   };
 
@@ -58,6 +75,7 @@ const Login = () => {
           onSubmit={handleSubmit(onSubmit)}
           className="w-full flex flex-col items-center gap-4"
         >
+
           <input
             type="email"
             placeholder="Email"
@@ -94,7 +112,7 @@ const Login = () => {
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
-                // ไอคอนซ่อนรหัส
+ 
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -110,6 +128,7 @@ const Login = () => {
                   />
                 </svg>
               ) : (
+
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"

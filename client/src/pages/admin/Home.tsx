@@ -1,6 +1,6 @@
 const Home = () => {
   return (
-    <p>home</p>
+    <div>adminHome</div>
   )
-}   
+}
 export default Home
