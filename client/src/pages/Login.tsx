@@ -53,7 +53,7 @@ const Login = () => {
         showConfirmButton: false,
         timer: 1200,
       }).then(() => {
-        if (user.role === "admin") navigate("/admin");
+        if (user.role === "admin") navigate("/admin/home");
         else navigate("/home");
       });
     } catch (error: any) {

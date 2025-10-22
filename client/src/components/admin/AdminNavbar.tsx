@@ -16,8 +16,8 @@ const Navbar = () => {
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
-    const navigate = useNavigate();
-    const logout = async () => {
+  const navigate = useNavigate();
+  const logout = async () => {
     try {
       await axios.post(
         "http://localhost:3000/logout",
@@ -32,7 +32,6 @@ const Navbar = () => {
         timer: 1500,
       });
 
-      // redirect หลัง alert ปิด
       setTimeout(() => {
         navigate("/login");
       }, 1500);
@@ -53,23 +52,18 @@ const Navbar = () => {
 
       <ul className="hidden md:flex space-x-6">
         <li>
-          <Link to="/" className="hover:text-yellow-400">
+          <Link to="/admin/home" className="hover:text-yellow-400">
             Home
           </Link>
         </li>
         <li>
-          <Link to="/shop" className="hover:text-yellow-400">
-            Shop
+          <Link to="/admin/dashboard" className="hover:text-yellow-400">
+            Dashboard
           </Link>
         </li>
         <li>
-          <Link to="/about" className="hover:text-yellow-400">
-            About
-          </Link>
-        </li>
-        <li>
-          <Link to="/contact" className="hover:text-yellow-400">
-            Contact
+          <Link to="/admin/order" className="hover:text-yellow-400">
+            Order
           </Link>
         </li>
       </ul>

@@ -4,11 +4,24 @@ const env = require("dotenv");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
 const mysql = require("mysql2");
+const multer = require("multer");
+const path = require("path");
 
 env.config();
 const app = express();
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./upload");
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + path.extname(file.originalname);
+    cb(null, file.fieldname + "-" + uniqueSuffix);
+  }
+});
+const upload = multer({ storage });
 
 app.use(express.json());
+app.use("/upload", express.static(path.join(__dirname, "upload")));
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true
@@ -42,6 +55,41 @@ app.get("/user", (req, res) => {
     } else{
         res.status(401).json({loggedIn: false});
     }
+});
+
+
+app.post("/products", upload.single("image"), async (req, res) => {
+  try {
+    const { product_name, price, stock, category_id, brand, description } = req.body;
+    const image_url = req.file ? `/upload/${req.file.filename}` : null;
+
+    await con.promise().query(
+      "INSERT INTO products (product_name, price, stock, category_id, brand, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [product_name, price, stock, category_id, brand, description, image_url]
+    );
+
+    res.status(200).json({ message: "Product added successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
+  }
+});
+
+app.get("/category", async (req, res) => {
+    try {
+        const [ rows ] = await con.promise().query("SELECT * FROM categories ORDER BY category_id DESC");
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        res.status(500).json({ message: "Database error" });
+    }
+});
+
+app.get("/products", (req, res) => {
+    con.query("SELECT * FROM products", (error, result) => {
+        if(error) return res.status(500).json({message: "Database error", error, error: error.message});
+        res.status(200).json(result);
+    })
 });
 
 
@@ -93,12 +141,7 @@ app.post("/logout", (req, res) => {
     });
 });
 
-app.get("/products", (req, res) => {
-    con.query("SELECT * FROM products", (error, result) => {
-        if(error) return res.status(500).json({message: "Database error", error, error: error.message});
-        res.status(200).json(result);
-    })
-})
+
 
 app.get("/", (req, res) => {
     res.send(process.env.DB_NAME);

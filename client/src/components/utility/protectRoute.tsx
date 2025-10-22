@@ -1,6 +1,6 @@
-// src/components/utility/ProtectRoute.tsx
 import { Navigate, Outlet } from "react-router-dom";
 import { useSession } from "./useSession";
+import Swal from "sweetalert2";
 
 type Props = {
   allowedRoles: string[];
@@ -11,13 +11,26 @@ const ProtectRoute = ({ allowedRoles }: Props) => {
 
   if (loading) return <div>Loading...</div>;
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user){
+    Swal.fire({
+            icon: "error",
+            title: "Please login!!!",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+    return <Navigate to="/login" replace />;
+  } 
 
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+    Swal.fire({
+            icon: "error",
+            title: "Unauthorized",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+          if(user.role == "customer") return <Navigate to="/home" replace />;
   }
 
-  // ใช้ Outlet สำหรับ nested routes
   return <Outlet />;
 };
 

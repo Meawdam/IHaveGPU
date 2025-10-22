@@ -1,13 +1,17 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AdminLayout from "./pages/admin/Layout";
 import ClientLayout from "./pages/customer/Layout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminHome from "./pages/admin/Home";
+import AdminDashboard from "./pages/admin/Dashboard";
 import ClientHome from "./pages/customer/Home";
 import ProtectRoute from "./components/utility/protectRoute";
 import { useSession } from "./components/utility/useSession";
+import AdminNotFound from "./pages/admin/NotFound";
+import ClientNotFound from "./pages/customer/NotFound";
+import AddProduct from "./pages/admin/AddProduct";
 
 const App = () => {
   const { user } = useSession();
@@ -22,13 +26,16 @@ const App = () => {
         <Route element={<ProtectRoute allowedRoles={["customer"]} />}>
           <Route element={<ClientLayout />}>
             <Route path="/home" element={<ClientHome />} />
+            <Route path="*" element={<ClientNotFound />} />
           </Route>
         </Route>
 
-
         <Route element={<ProtectRoute allowedRoles={["admin"]} />}>
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminHome />} />
+            <Route path="home" index element={<AdminHome />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="addProduct" element={<AddProduct />} />
+            <Route path="*" element={<AdminNotFound />} />
           </Route>
         </Route>
 
