@@ -12,10 +12,19 @@ import { useSession } from "./components/utility/useSession";
 import AdminNotFound from "./pages/admin/NotFound";
 import ClientNotFound from "./pages/customer/NotFound";
 import AddProduct from "./pages/admin/AddProduct";
+import EditProduct from "./pages/admin/EditProduct";
+import AdminProduct from "./pages/admin/Product";
+import ManageOrder from "./pages/admin/ManageOrder";
+import ManageUser from "./pages/admin/ManageUser";
+import ManageReviews from "./pages/admin/ManageReview";
+import AdminSettings from "./pages/admin/Profile";
+import ClientShop from "./pages/customer/Shop";
+import ClientOrder from "./pages/customer/Order";
+import Cart from "./pages/customer/Cart";
+import Profile from "./pages/customer/Profile";
+import Product from "./pages/customer/Product";
 
-const App = () => {
-  const { user } = useSession();
-
+function App() {
   return (
     <Router>
       <Routes>
@@ -26,6 +35,11 @@ const App = () => {
         <Route element={<ProtectRoute allowedRoles={["customer"]} />}>
           <Route element={<ClientLayout />}>
             <Route path="/home" element={<ClientHome />} />
+            <Route path="/shop" element={<ClientShop />} />
+            <Route path="/order" element={<ClientOrder />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/shop/product/:id" element={<Product />} />
             <Route path="*" element={<ClientNotFound />} />
           </Route>
         </Route>
@@ -35,13 +49,18 @@ const App = () => {
             <Route path="home" index element={<AdminHome />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="addProduct" element={<AddProduct />} />
+            <Route path="editProduct/:id" element={<EditProduct />} />
+            <Route path="product/:id" element={<AdminProduct />} />
+            <Route path="order" element={<ManageOrder />} />
+            <Route path="user" element={<ManageUser />} />
+            <Route path="review" element={<ManageReviews />} />
+            <Route path="settings" element={<AdminSettings />} />
             <Route path="*" element={<AdminNotFound />} />
           </Route>
         </Route>
-
       </Routes>
     </Router>
   );
-};
+}
 
 export default App;

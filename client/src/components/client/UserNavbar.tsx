@@ -1,23 +1,42 @@
-// src/components/Layout/Navbar.tsx
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  FaUserCircle,
-  FaShoppingCart,
-  FaHistory,
-  FaSignOutAlt,
-} from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FaUserCircle, FaShoppingCart, FaSignOutAlt } from "react-icons/fa";
 import Swal from "sweetalert2";
 import axios from "axios";
 
 const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [username, setUsername] = useState<string>("");
+  const navigate = useNavigate();
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
-    const navigate = useNavigate();
-    const logout = async () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/user", {
+          withCredentials: true,
+        });
+        setUsername(res.data.user.username);
+      } catch (err: any) {
+        Swal.fire({
+          icon: "error",
+          title: "Fetch error",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      }
+    };
+    fetchData();
+
+    const handleUsernameUpdate = (e: any) => setUsername(e.detail);
+    window.addEventListener("usernameUpdated", handleUsernameUpdate);
+
+    return () =>
+      window.removeEventListener("usernameUpdated", handleUsernameUpdate);
+  }, []);
+
+  const logout = async () => {
     try {
       await axios.post(
         "http://localhost:3000/logout",
@@ -32,10 +51,7 @@ const Navbar = () => {
         timer: 1500,
       });
 
-      // redirect หลัง alert ปิด
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       console.error(err);
       Swal.fire({
@@ -48,12 +64,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gray-900 text-white px-6 py-4 flex items-center justify-between">
-      <div className="text-2xl font-bold">IHaveGpu</div>
-
-      <ul className="hidden md:flex space-x-6">
+    <nav className="bg-gray-900 text-white px-6 py-4 flex items-center justify-between shadow-lg">
+      <div className="text-2xl font-bold">
+        <Link to="/home">IHaveGpu</Link>
+      </div>
+      <ul className="hidden md:flex space-x-6 text-sm font-medium">
         <li>
-          <Link to="/" className="hover:text-yellow-400">
+          <Link to="/home" className="hover:text-yellow-400">
             Home
           </Link>
         </li>
@@ -63,24 +80,11 @@ const Navbar = () => {
           </Link>
         </li>
         <li>
-          <Link to="/about" className="hover:text-yellow-400">
-            About
-          </Link>
-        </li>
-        <li>
-          <Link to="/contact" className="hover:text-yellow-400">
-            Contact
+          <Link to="/order" className="hover:text-yellow-400">
+            Orders
           </Link>
         </li>
       </ul>
-
-      <div className="hidden md:block">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="px-3 py-1 rounded text-black focus:outline-none"
-        />
-      </div>
 
       <div className="relative ml-4">
         <button
@@ -88,7 +92,7 @@ const Navbar = () => {
           className="flex items-center space-x-2 focus:outline-none"
         >
           <FaUserCircle size={28} />
-          <span className="hidden md:block">Meaw</span>
+          <span className="hidden md:block">{username || "Loading..."}</span>
         </button>
 
         {dropdownOpen && (
@@ -105,14 +109,8 @@ const Navbar = () => {
             >
               <FaShoppingCart className="mr-2" /> Cart
             </Link>
-            <Link
-              to="/history"
-              className="flex items-center px-4 py-2 hover:bg-gray-200"
-            >
-              <FaHistory className="mr-2" /> History
-            </Link>
             <button
-              onClick={() => logout()}
+              onClick={logout}
               className="flex items-center px-4 py-2 w-full hover:bg-gray-200"
             >
               <FaSignOutAlt className="mr-2" /> Logout

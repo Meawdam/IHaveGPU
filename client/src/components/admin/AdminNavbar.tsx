@@ -1,22 +1,42 @@
 // src/components/Layout/Navbar.tsx
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaUserCircle,
   FaShoppingCart,
   FaHistory,
   FaSignOutAlt,
+  FaUsers,
+  FaStar,
+  FaCog,
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
 
 const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [username, setUsername] = useState<string>("");
+  const navigate = useNavigate();
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/user", { withCredentials: true });
+        setUsername(res.data.user.username);
+      } catch (err: any) {
+        Swal.fire({ icon: "error", title: "Fetch error", showConfirmButton: false, timer: 1500 });
+      }
+    };
+    fetchData();
+
+    const handleUsernameUpdate = (e: any) => setUsername(e.detail);
+    window.addEventListener("usernameUpdated", handleUsernameUpdate);
+
+    return () => window.removeEventListener("usernameUpdated", handleUsernameUpdate);
+  }, []);
+
   const logout = async () => {
     try {
       await axios.post(
@@ -32,9 +52,7 @@ const Navbar = () => {
         timer: 1500,
       });
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       console.error(err);
       Swal.fire({
@@ -47,10 +65,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gray-900 text-white px-6 py-4 flex items-center justify-between">
-      <div className="text-2xl font-bold">IHaveGpu</div>
+    <nav className="bg-gray-900 text-white px-6 py-4 flex items-center justify-between shadow-lg">
+      <div className="text-2xl font-bold">
+        <Link to="/admin/home">IHaveGpu</Link>
+      </div>
 
-      <ul className="hidden md:flex space-x-6">
+      <ul className="hidden md:flex space-x-6 text-sm font-medium">
         <li>
           <Link to="/admin/home" className="hover:text-yellow-400">
             Home
@@ -63,18 +83,25 @@ const Navbar = () => {
         </li>
         <li>
           <Link to="/admin/order" className="hover:text-yellow-400">
-            Order
+            Orders
+          </Link>
+        </li>
+        <li>
+          <Link to="/admin/user" className="hover:text-yellow-400 flex items-center gap-1">
+            <FaUsers /> Users
+          </Link>
+        </li>
+        <li>
+          <Link to="/admin/review" className="hover:text-yellow-400 flex items-center gap-1">
+            <FaStar /> Reviews
+          </Link>
+        </li>
+        <li>
+          <Link to="/admin/settings" className="hover:text-yellow-400 flex items-center gap-1">
+            <FaCog /> Settings
           </Link>
         </li>
       </ul>
-
-      <div className="hidden md:block">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="px-3 py-1 rounded text-black focus:outline-none"
-        />
-      </div>
 
       <div className="relative ml-4">
         <button
@@ -82,7 +109,7 @@ const Navbar = () => {
           className="flex items-center space-x-2 focus:outline-none"
         >
           <FaUserCircle size={28} />
-          <span className="hidden md:block">Meaw</span>
+          <span className="hidden md:block">{username || "Loading..."}</span>
         </button>
 
         {dropdownOpen && (
@@ -106,7 +133,7 @@ const Navbar = () => {
               <FaHistory className="mr-2" /> History
             </Link>
             <button
-              onClick={() => logout()}
+              onClick={logout}
               className="flex items-center px-4 py-2 w-full hover:bg-gray-200"
             >
               <FaSignOutAlt className="mr-2" /> Logout

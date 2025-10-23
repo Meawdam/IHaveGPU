@@ -1,4 +1,3 @@
-// src/pages/admin/AddProduct.tsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -21,12 +20,15 @@ const AddProduct = () => {
   const [image, setImage] = useState<File | null>(null);
 
   useEffect(() => {
-    axios.get("http://localhost:3000/category", { withCredentials: true })
-      .then(res => setCategories(res.data))
+    axios
+      .get("http://localhost:3000/category", { withCredentials: true })
+      .then((res) => setCategories(res.data))
       .catch(console.error);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     setProduct({ ...product, [e.target.name]: e.target.value });
   };
 
@@ -56,13 +58,30 @@ const AddProduct = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      Swal.fire({ icon: "success", title: "Product added!", timer: 1500, showConfirmButton: false });
+      Swal.fire({
+        icon: "success",
+        title: "Product added!",
+        timer: 1500,
+        showConfirmButton: false,
+      });
 
-      setProduct({ product_name: "", price: "", stock: "", category_id: "", brand: "", description: "" });
+      setProduct({
+        product_name: "",
+        price: "",
+        stock: "",
+        category_id: "",
+        brand: "",
+        description: "",
+      });
       setImage(null);
     } catch (err) {
       console.error(err);
-      Swal.fire({ icon: "error", title: "Failed to add product", timer: 1500, showConfirmButton: false });
+      Swal.fire({
+        icon: "error",
+        title: "Failed to add product",
+        timer: 1500,
+        showConfirmButton: false,
+      });
     }
   };
 
@@ -70,7 +89,10 @@ const AddProduct = () => {
     <div className="container mx-auto px-4 py-10 max-w-2xl">
       <h1 className="text-3xl font-semibold mb-6 text-center">➕ Add New Product</h1>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-2xl shadow space-y-4"
+      >
         <div>
           <label className="text-gray-600">Product Name</label>
           <input
@@ -118,8 +140,10 @@ const AddProduct = () => {
             required
           >
             <option value="">-- Select Category --</option>
-            {categories.map(cat => (
-              <option key={cat.category_id} value={cat.category_id}>{cat.category_name}</option>
+            {categories.map((cat) => (
+              <option key={cat.category_id} value={cat.category_id}>
+                {cat.category_name}
+              </option>
             ))}
           </select>
         </div>
@@ -147,14 +171,15 @@ const AddProduct = () => {
         </div>
 
         <div>
-          <label className="text-gray-600">Product Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="mt-1 cursor-pointer"
-            required
-          />
+          <label className="inline-block w-full text-center bg-yellow-400 hover:bg-yellow-500 text-white font-semibold py-2 rounded-lg cursor-pointer transition">
+            {image ? "Change Image" : "Add Image"}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </label>
         </div>
 
         <button

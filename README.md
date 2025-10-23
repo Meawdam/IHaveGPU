@@ -1,9 +1,10 @@
 # ⚡ IHaveGPU
 
-## 🧰 Tech Stack
+
+## 🧰 Tech Stack  
 
 | Layer | Technology |
-|:------|:------------|
+|-------|-------------|
 | **Frontend** | React, Vite, TailwindCSS |
 | **Backend** | Node.js, Express.js |
 | **Communication** | REST API / WebSocket |
@@ -94,9 +95,6 @@ app.listen(3000, () => { // <===== RIGHT HERE
 
 ```bash
 # 🖥️ Terminal 1 - Frontend
-cd client
-npm run dev
-```
 
 ```bash
 # ⚙️ Terminal 2 - Backend
