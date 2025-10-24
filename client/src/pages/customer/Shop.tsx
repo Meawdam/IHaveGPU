@@ -63,6 +63,7 @@ const Shop = () => {
       if (sortOrder === "desc") return b.price - a.price;
       return 0;
     });
+
   const addToCart = async (product: Product) => {
     if (product.stock < 1) {
       return Swal.fire("Out of stock", "Cannot add this product", "warning");
@@ -83,6 +84,7 @@ const Shop = () => {
       );
     }
   };
+
   return (
     <div className="container mx-auto px-4 py-10">
       <h1 className="text-3xl font-semibold mb-6 text-center">🛒 Shop</h1>
@@ -127,19 +129,29 @@ const Shop = () => {
           {filteredProducts.map((product) => (
             <div
               key={product.product_id}
-              className="bg-white rounded-2xl shadow hover:shadow-lg transition p-4 flex flex-col"
+              className="bg-white rounded-2xl shadow hover:shadow-lg transition p-4 flex flex-col relative"
             >
               <Link to={`/shop/product/${product.product_id}`}>
-                <img
-                  src={
-                    product.image_url
-                      ? `http://localhost:3000${product.image_url}`
-                      : "https://via.placeholder.com/150"
-                  }
-                  alt={product.product_name}
-                  className="w-full h-full object-cover rounded-lg mb-3"
-                />
+                <div className="relative">
+                  <img
+                    src={
+                      product.image_url
+                        ? `http://localhost:3000${product.image_url}`
+                        : "https://via.placeholder.com/150"
+                    }
+                    alt={product.product_name}
+                    className="w-full h-full object-cover rounded-lg mb-3"
+                  />
+                  {product.stock < 1 && (
+                    <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-lg">
+                      <span className="text-white text-lg font-bold">
+                        Out of Stock
+                      </span>
+                    </div>
+                  )}
+                </div>
               </Link>
+
               <h2 className="text-lg font-semibold">{product.product_name}</h2>
               <p className="text-gray-500 text-sm mb-1">
                 {product.category_name}
@@ -147,8 +159,22 @@ const Shop = () => {
               <p className="text-blue-600 font-bold text-lg mb-2">
                 ฿{product.price}
               </p>
-              <p className="text-sm text-gray-600 mb-3">
-                Stock: {product.stock}
+
+              <p
+                className={`text-sm font-semibold mb-3 ${
+                  product.stock === 0
+                    ? "text-red-600 animate-pulse"
+                    : product.stock <= 5
+                    ? "text-orange-500"
+                    : "text-green-600"
+                }`}
+              >
+                Stock:{" "}
+                {product.stock === 0 ? (
+                  <span className="font-bold">Out of stock ❌</span>
+                ) : (
+                  <span>{product.stock}</span>
+                )}
               </p>
 
               <button

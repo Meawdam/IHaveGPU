@@ -53,19 +53,35 @@ const AdminHome = () => {
 
     if (confirm.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:3000/products/${id}`, { withCredentials: true });
-        Swal.fire({ icon: "success", title: "Deleted!", timer: 1200, showConfirmButton: false });
+        await axios.delete(`http://localhost:3000/products/${id}`, {
+          withCredentials: true,
+        });
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          timer: 1200,
+          showConfirmButton: false,
+        });
         fetchData();
       } catch (err) {
         console.error(err);
-        Swal.fire({ icon: "error", title: "Delete failed", timer: 1200, showConfirmButton: false });
+        Swal.fire({
+          icon: "error",
+          title: "Delete failed",
+          timer: 1200,
+          showConfirmButton: false,
+        });
       }
     }
   };
 
   const filteredProducts = products
     .filter((p) => p.product_name.toLowerCase().includes(search.toLowerCase()))
-    .filter((p) => (selectedCategory === "all" ? true : p.category_id.toString() === selectedCategory))
+    .filter((p) =>
+      selectedCategory === "all"
+        ? true
+        : p.category_id.toString() === selectedCategory
+    )
     .sort((a, b) => {
       if (sortOrder === "asc") return a.price - b.price;
       if (sortOrder === "desc") return b.price - a.price;
@@ -74,7 +90,9 @@ const AdminHome = () => {
 
   return (
     <div className="container mx-auto px-4 py-10">
-      <h1 className="text-3xl font-semibold mb-6 text-center">🛍️ Product Management</h1>
+      <h1 className="text-3xl font-semibold mb-6 text-center">
+        🛍️ Product Management
+      </h1>
 
       <div className="flex flex-col sm:flex-row gap-3 justify-between mb-8">
         <input
@@ -121,17 +139,45 @@ const AdminHome = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
-            <div key={product.product_id} className="bg-white rounded-2xl shadow hover:shadow-lg transition p-4 flex flex-col">
+            <div
+              key={product.product_id}
+              className="bg-white rounded-2xl shadow hover:shadow-lg transition p-4 flex flex-col"
+            >
               <Link to={`/admin/product/${product.product_id}`}>
                 <img
-                  src={product.image_url ? `http://localhost:3000${product.image_url}` : "https://via.placeholder.com/150"}
+                  src={
+                    product.image_url
+                      ? `http://localhost:3000${product.image_url}`
+                      : "https://via.placeholder.com/150"
+                  }
                   alt={product.product_name}
                   className="w-full h-50 object-cover rounded-lg mb-3"
                 />
-                <h2 className="text-lg font-semibold">{product.product_name}</h2>
-                <p className="text-gray-500 text-sm mb-1">{product.category_name}</p>
-                <p className="text-blue-600 font-bold text-lg mb-2">฿{product.price}</p>
-                <p className="text-sm text-gray-600">Stock: {product.stock}</p>
+                <h2 className="text-lg font-semibold">
+                  {product.product_name}
+                </h2>
+                <p className="text-gray-500 text-sm mb-1">
+                  {product.category_name}
+                </p>
+                <p className="text-blue-600 font-bold text-lg mb-2">
+                  ฿{product.price}
+                </p>
+                <p
+                  className={`text-sm font-semibold ${
+                    product.stock === 0
+                      ? "text-red-600 animate-pulse"
+                      : product.stock <= 5
+                      ? "text-orange-500"
+                      : "text-green-600"
+                  }`}
+                >
+                  Stock:{" "}
+                  {product.stock === 0 ? (
+                    <span className="font-bold">Out of stock ❌</span>
+                  ) : (
+                    <span>{product.stock}</span>
+                  )}
+                </p>
               </Link>
 
               <div className="mt-3 flex gap-2">

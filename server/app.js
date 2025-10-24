@@ -180,22 +180,44 @@ app.put("/users/:id/role", async (req, res) => {
 });
 
 app.delete("/users/:id", async (req, res) => {
-  const { id } = req.params;
+  const userId = parseInt(req.params.id, 10);
+
+  if (isNaN(userId)) return res.status(400).json({ message: "Invalid user ID" });
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  if (userId === req.session.user.id) {
+    return res.status(400).json({ message: "Cannot delete yourself" });
+  }
+
   try {
-    const [result] = await con
+    await con.promise().beginTransaction();
+    const [orders] = await con
       .promise()
-      .query("DELETE FROM users WHERE user_id = ?", [id]);
+      .query("SELECT order_id FROM orders WHERE user_id = ?", [userId]);
+    const orderIds = orders.map(o => o.order_id);
+    if (orderIds.length > 0) {
+      const placeholders = orderIds.map(() => "?").join(",");
+      await con.promise().query(`DELETE FROM order_items WHERE order_id IN (${placeholders})`, orderIds);
+      await con.promise().query(`DELETE FROM orders WHERE order_id IN (${placeholders})`, orderIds);
+    }
+    await con.promise().query("DELETE FROM cart WHERE user_id = ?", [userId]);
+    await con.promise().query("DELETE FROM reviews WHERE user_id = ?", [userId]);
 
-    if (result.affectedRows === 0)
+    const [result] = await con.promise().query("DELETE FROM users WHERE user_id = ?", [userId]);
+    if (result.affectedRows === 0) {
+      await con.promise().rollback();
       return res.status(404).json({ message: "User not found" });
+    }
 
-    res.status(200).json({ message: "User deleted successfully" });
+    await con.promise().commit();
+    res.status(200).json({ message: "User and related data deleted successfully" });
   } catch (err) {
-    console.error(err);
+    await con.promise().rollback();
+    console.error("Delete user error:", err.sqlMessage || err.message);
     res.status(500).json({ message: "Database error" });
   }
 });
-
 // --- Profile ---
 app.get("/profile", async (req, res) => {
   try {
@@ -540,12 +562,32 @@ app.put("/orders/:id/status", async (req, res) => {
     return res.status(400).json({ message: "Invalid status" });
 
   try {
+    // อัปเดตสถานะของคำสั่งซื้อ
     await con
       .promise()
       .query("UPDATE orders SET status = ? WHERE order_id = ?", [
         status,
         orderId,
       ]);
+
+    if (status === "completed") {
+      const [items] = await con
+        .promise()
+        .query(
+          `SELECT product_id, quantity FROM order_items WHERE order_id = ?`,
+          [orderId]
+        );
+
+      for (const item of items) {
+        await con
+          .promise()
+          .query(
+            "UPDATE products SET stock = stock - ? WHERE product_id = ? AND stock >= ?",
+            [item.quantity, item.product_id, item.quantity]
+          );
+      }
+    }
+
     res.json({ message: `Order status updated to ${status}` });
   } catch (err) {
     console.error(err);
@@ -602,100 +644,18 @@ app.delete("/orders/:id", async (req, res) => {
   }
 });
 
-// --- Reviews ---
-app.get("/reviews", async (req, res) => {
-  try {
-    const productId = req.query.product_id;
-    if (!productId)
-      return res.status(400).json({ message: "Product ID is required" });
-
-    const [rows] = await con.promise().query(
-      `SELECT r.review_id, r.rating, r.comment, r.created_at, u.username
-       FROM reviews r
-       JOIN users u ON r.user_id = u.user_id
-       WHERE r.product_id = ?
-       ORDER BY r.created_at DESC`,
-      [productId]
-    );
-
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to fetch reviews" });
-  }
-});
-
-app.post("/reviews", async (req, res) => {
-  try {
-    const user = req.session.user;
-    if (!user) return res.status(401).json({ message: "Please login first" });
-
-    const { product_id, rating, comment } = req.body;
-    if (!product_id || !rating || !comment)
-      return res.status(400).json({ message: "Missing required fields" });
-
-    // Check if user purchased product
-    const [orders] = await con.promise().query(
-      `SELECT oi.product_id 
-       FROM orders o 
-       JOIN order_items oi ON o.order_id = oi.order_id 
-       WHERE o.user_id = ? AND oi.product_id = ? AND o.status = 'completed'`,
-      [user.id, product_id]
-    );
-
-    if (orders.length === 0)
-      return res
-        .status(403)
-        .json({ message: "You can only review purchased products" });
-
-    const [result] = await con.promise().query(
-      `INSERT INTO reviews (user_id, product_id, rating, comment, created_at)
-       VALUES (?, ?, ?, ?, NOW())`,
-      [user.id, product_id, rating, comment]
-    );
-
-    const [newReview] = await con.promise().query(
-      `SELECT r.review_id, r.rating, r.comment, r.created_at, u.username
-       FROM reviews r
-       JOIN users u ON r.user_id = u.user_id
-       WHERE r.review_id = ?`,
-      [result.insertId]
-    );
-
-    res.status(201).json(newReview[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to submit review" });
-  }
-});
-
-app.delete("/reviews/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const [result] = await con
-      .promise()
-      .query("DELETE FROM reviews WHERE review_id = ?", [id]);
-    if (result.affectedRows === 0)
-      return res.status(404).json({ message: "Review not found" });
-
-    res.status(200).json({ message: "Review deleted successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Database error" });
-  }
-});
-
-// --- Stats ---
 app.get("/stats", async (req, res) => {
   try {
     const [ordersResult] = await con
       .promise()
       .query(
-        "SELECT COUNT(*) AS totalOrders, IFNULL(SUM(total_price),0) AS totalRevenue FROM orders"
+        "SELECT COUNT(*) AS totalOrders, IFNULL(SUM(total_price),0) AS totalRevenue FROM orders WHERE status = 'completed'"
       );
+
     const [usersResult] = await con
       .promise()
       .query("SELECT COUNT(*) AS totalUsers FROM users");
+
     const [productsResult] = await con
       .promise()
       .query("SELECT COUNT(*) AS totalProducts FROM products");
@@ -712,7 +672,6 @@ app.get("/stats", async (req, res) => {
   }
 });
 
-// --- Start Server ---
 app.listen(process.env.SERVER_PORT, () => {
   console.log(`Server is running on port ${process.env.SERVER_PORT}`);
 });

@@ -120,7 +120,6 @@ const Register = () => {
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
-                // eye-off icon
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -136,7 +135,6 @@ const Register = () => {
                   />
                 </svg>
               ) : (
-                // eye icon
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"

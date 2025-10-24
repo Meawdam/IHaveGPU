@@ -1,13 +1,9 @@
-// src/components/Layout/Navbar.tsx
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaUserCircle,
-  FaShoppingCart,
-  FaHistory,
   FaSignOutAlt,
   FaUsers,
-  FaStar,
   FaCog,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -92,11 +88,6 @@ const Navbar = () => {
           </Link>
         </li>
         <li>
-          <Link to="/admin/review" className="hover:text-yellow-400 flex items-center gap-1">
-            <FaStar /> Reviews
-          </Link>
-        </li>
-        <li>
           <Link to="/admin/settings" className="hover:text-yellow-400 flex items-center gap-1">
             <FaCog /> Settings
           </Link>
@@ -114,24 +105,6 @@ const Navbar = () => {
 
         {dropdownOpen && (
           <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg z-10">
-            <Link
-              to="/profile"
-              className="flex items-center px-4 py-2 hover:bg-gray-200"
-            >
-              <FaUserCircle className="mr-2" /> Profile
-            </Link>
-            <Link
-              to="/cart"
-              className="flex items-center px-4 py-2 hover:bg-gray-200"
-            >
-              <FaShoppingCart className="mr-2" /> Cart
-            </Link>
-            <Link
-              to="/history"
-              className="flex items-center px-4 py-2 hover:bg-gray-200"
-            >
-              <FaHistory className="mr-2" /> History
-            </Link>
             <button
               onClick={logout}
               className="flex items-center px-4 py-2 w-full hover:bg-gray-200"

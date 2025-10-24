@@ -8,7 +8,6 @@ import AdminHome from "./pages/admin/Home";
 import AdminDashboard from "./pages/admin/Dashboard";
 import ClientHome from "./pages/customer/Home";
 import ProtectRoute from "./components/utility/protectRoute";
-import { useSession } from "./components/utility/useSession";
 import AdminNotFound from "./pages/admin/NotFound";
 import ClientNotFound from "./pages/customer/NotFound";
 import AddProduct from "./pages/admin/AddProduct";
@@ -16,7 +15,6 @@ import EditProduct from "./pages/admin/EditProduct";
 import AdminProduct from "./pages/admin/Product";
 import ManageOrder from "./pages/admin/ManageOrder";
 import ManageUser from "./pages/admin/ManageUser";
-import ManageReviews from "./pages/admin/ManageReview";
 import AdminSettings from "./pages/admin/Profile";
 import ClientShop from "./pages/customer/Shop";
 import ClientOrder from "./pages/customer/Order";
@@ -53,7 +51,6 @@ function App() {
             <Route path="product/:id" element={<AdminProduct />} />
             <Route path="order" element={<ManageOrder />} />
             <Route path="user" element={<ManageUser />} />
-            <Route path="review" element={<ManageReviews />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="*" element={<AdminNotFound />} />
           </Route>

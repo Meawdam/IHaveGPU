@@ -72,24 +72,28 @@ const ManageUsers = () => {
       text: "This user will be permanently deleted!",
       showCancelButton: true,
       confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`http://localhost:3000/users/${user_id}`, {
-            withCredentials: true,
-          });
+          const res = await axios.delete(
+            `http://localhost:3000/users/${user_id}`,
+            { withCredentials: true }
+          );
+
           Swal.fire({
             icon: "success",
-            title: "User deleted",
+            title: res.data.message || "User deleted",
             showConfirmButton: false,
             timer: 1500,
           });
-          fetchUsers();
-        } catch (err) {
-          console.error(err);
+
+          setUsers((prev) => prev.filter((u) => u.user_id !== user_id));
+        } catch (err: any) {
+          console.error("Delete user failed:", err);
           Swal.fire({
             icon: "error",
-            title: "Failed to delete user",
+            title: err.response?.data?.message || "Failed to delete user",
             showConfirmButton: false,
             timer: 1500,
           });
