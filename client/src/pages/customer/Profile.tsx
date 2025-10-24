@@ -1,30 +1,35 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import {
+  FaUserCircle,
+  FaEnvelope,
+  FaBox,
+  FaHourglassHalf,
+  FaCheckCircle,
+  FaTimesCircle,
+} from "react-icons/fa";
 
 type User = {
   username: string;
   email: string;
 };
 
-type OrderItem = {
-  order_item_id: number;
-  product_name: string;
-  quantity: number;
-  price: number;
-};
-
 type Order = {
   order_id: number;
   total_price: number;
-  items: OrderItem[];
+  status: "pending" | "completed" | "cancelled";
 };
 
 const UserProfile = () => {
   const [user, setUser] = useState<User>({ username: "", email: "" });
   const [orders, setOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState({
+    pending: 0,
+    completed: 0,
+    cancelled: 0,
+  });
 
-  // อัปเดตโปรไฟล์
   const updateProfile = async () => {
     try {
       await axios.put(
@@ -55,7 +60,6 @@ const UserProfile = () => {
     }
   };
 
-  // ดึงข้อมูลผู้ใช้และออร์เดอร์
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -68,6 +72,19 @@ const UserProfile = () => {
           withCredentials: true,
         });
         setOrders(resOrders.data);
+
+        // นับสถิติ
+        const pending = resOrders.data.filter(
+          (o: Order) => o.status === "pending"
+        ).length;
+        const completed = resOrders.data.filter(
+          (o: Order) => o.status === "completed"
+        ).length;
+        const cancelled = resOrders.data.filter(
+          (o: Order) => o.status === "cancelled"
+        ).length;
+
+        setStats({ pending, completed, cancelled });
       } catch (err: any) {
         console.error(err);
         Swal.fire({
@@ -83,68 +100,65 @@ const UserProfile = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-      {/* Profile */}
-      <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-md mb-10">
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">My Profile</h1>
-
-        <div className="mb-4">
-          <label className="block mb-1 font-medium text-gray-700">Username</label>
-          <input
-            value={user.username}
-            onChange={(e) => setUser({ ...user, username: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          />
+    <div className="min-h-screen bg-blue-50 flex flex-col items-center p-6">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 mb-10">
+        <div className="flex flex-col items-center mb-8">
+          <FaUserCircle className="text-blue-500 text-9xl mb-4" />
+          <h1 className="text-4xl font-bold text-gray-800">{user.username}</h1>
+          <p className="text-gray-500 flex items-center gap-2 mt-1">
+            <FaEnvelope /> {user.email}
+          </p>
         </div>
 
-        <div className="mb-6">
-          <label className="block mb-1 font-medium text-gray-700">Email</label>
-          <input
-            type="email"
-            value={user.email}
-            onChange={(e) => setUser({ ...user, email: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          />
-        </div>
+        <div className="space-y-6">
+          <div className="p-4 rounded-xl flex flex-col border border-gray-200">
+            <label className="text-gray-500 text-sm mb-2">Username</label>
+            <input
+              value={user.username}
+              onChange={(e) => setUser({ ...user, username: e.target.value })}
+              className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Enter your username"
+            />
+          </div>
 
-        <button
-          onClick={updateProfile}
-          className="w-full bg-yellow-400 hover:bg-yellow-500 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-200"
-        >
-          Update Profile
-        </button>
+          <div className="p-4 rounded-xl flex flex-col border border-gray-200">
+            <label className="text-gray-500 text-sm mb-2">Email</label>
+            <input
+              type="email"
+              value={user.email}
+              onChange={(e) => setUser({ ...user, email: e.target.value })}
+              className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Enter your email"
+            />
+          </div>
+
+          <button
+            onClick={updateProfile}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg transition-all duration-200"
+          >
+            Update Profile
+          </button>
+        </div>
       </div>
 
-      {/* Order History */}
-      <div className="w-full max-w-3xl">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Order History</h2>
+      <div className="w-full max-w-3xl grid grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center">
+          <FaHourglassHalf className="text-yellow-500 text-4xl mb-2" />
+          <p className="text-gray-500">Pending</p>
+          <p className="text-xl font-bold">{stats.pending}</p>
+        </div>
 
-        {orders.length === 0 ? (
-          <p className="text-gray-500 text-center">You have no orders yet.</p>
-        ) : (
-          <div className="space-y-6">
-            {orders.map((order) => (
-              <div
-                key={order.order_id}
-                className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200"
-              >
-                <div className="flex justify-between items-center mb-4">
-                  <span className="font-semibold text-gray-700">Order #{order.order_id}</span>
-                  <span className="text-yellow-500 font-bold">฿{order.total_price}</span>
-                </div>
+        <div className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center">
+          <FaCheckCircle className="text-green-500 text-4xl mb-2" />
+          <p className="text-gray-500">Completed</p>
+          <p className="text-xl font-bold">{stats.completed}</p>
+        </div>
 
-                <div className="divide-y divide-gray-200">
-                  {order.items.map((item) => (
-                    <div key={item.order_item_id} className="py-2 flex justify-between text-gray-700">
-                      <span>{item.product_name} x {item.quantity}</span>
-                      <span>฿{item.price}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center">
+          <FaTimesCircle className="text-red-500 text-4xl mb-2" />
+          <p className="text-gray-500">Cancelled</p>
+          <p className="text-xl font-bold">{stats.cancelled}</p>
+        </div>
       </div>
     </div>
   );

@@ -672,6 +672,29 @@ app.get("/stats", async (req, res) => {
   }
 });
 
+app.get("/admin/order-stats", async (req, res) => {
+  try {
+    const [pending] = await con.promise().query(
+      "SELECT COUNT(*) as count FROM orders WHERE status = 'pending'"
+    );
+    const [completed] = await con.promise().query(
+      "SELECT COUNT(*) as count FROM orders WHERE status = 'completed'"
+    );
+    const [cancelled] = await con.promise().query(
+      "SELECT COUNT(*) as count FROM orders WHERE status = 'cancelled'"
+    );
+
+    res.json({
+      pending: pending[0].count,
+      completed: completed[0].count,
+      cancelled: cancelled[0].count,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch order stats" });
+  }
+});
+
 app.listen(process.env.SERVER_PORT, () => {
   console.log(`Server is running on port ${process.env.SERVER_PORT}`);
 });
